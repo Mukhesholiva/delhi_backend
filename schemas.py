@@ -6,6 +6,7 @@ class CreditBalanceBase(BaseModel):
     client_code: str
     client_name: str
     phone_no: Optional[str] = None
+    email_id: Optional[str] = None
     treatment_name: Optional[str] = None
     package_amount: Optional[float] = 0.0
     amount_paid: Optional[float] = 0.0
@@ -25,6 +26,7 @@ class CreditBalanceUpdate(BaseModel):
     client_code: Optional[str] = None
     client_name: Optional[str] = None
     phone_no: Optional[str] = None
+    email_id: Optional[str] = None
     treatment_name: Optional[str] = None
     package_amount: Optional[float] = None
     amount_paid: Optional[float] = None

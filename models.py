@@ -14,6 +14,7 @@ class CreditBalance(Base):
     client_code = Column(String(50), nullable=False, index=True)
     client_name = Column(String(255), nullable=False, index=True)
     phone_no = Column(String(20), nullable=True)
+    email_id = Column(String(255), nullable=True)
     
     # Treatment information
     treatment_name = Column(String(255), nullable=True)
@@ -40,23 +41,38 @@ class CreditBalance(Base):
     
     def generate_voucher_number(self):
         """Generate voucher number based on center, client code, and phone number."""
-        if not self.center or not self.client_code or not self.phone_no:
-            return None
+        try:
+            # Get center prefix
+            if self.center:
+                center_upper = self.center.upper()
+                if 'GK' in center_upper or 'GREATER KAILASH' in center_upper:
+                    prefix = 'GK'
+                elif 'PV' in center_upper or 'PREET' in center_upper:
+                    prefix = 'PV'
+                elif 'PUNJABI' in center_upper or 'BAGH' in center_upper:
+                    prefix = 'PB'
+                elif 'PITAMPURA' in center_upper:
+                    prefix = 'PT'
+                else:
+                    prefix = 'XX'  # Default prefix for unknown centers
+            else:
+                prefix = 'XX'
             
-        # Determine prefix based on center
-        prefix = "GK" if self.center.upper() == "GK2" else "PV"
-        
-        # Get first 3 digits of client code
-        client_code_digits = ''.join(filter(str.isdigit, self.client_code))[:3]
-        
-        # Get middle 4 digits of phone number
-        phone_digits = ''.join(filter(str.isdigit, self.phone_no))
-        if len(phone_digits) >= 4:
-            middle_phone = phone_digits[2:6] if len(phone_digits) > 6 else phone_digits[:4]
-        else:
-            middle_phone = phone_digits.zfill(4)
-        
-        return f"{prefix}{client_code_digits.zfill(3)}{middle_phone}"
+            # Get first 3 digits of client code
+            client_digits = self.client_code[:3] if self.client_code else '000'
+            
+            # Get middle 4 digits of phone number
+            phone_clean = str(self.phone_no).replace(' ', '').replace('-', '') if self.phone_no else '0000000000'
+            if len(phone_clean) >= 7:
+                middle_digits = phone_clean[3:7]  # Middle 4 digits
+            else:
+                middle_digits = phone_clean.zfill(4)[:4]  # Pad with zeros if too short
+            
+            voucher_number = f"{prefix}{client_digits}{middle_digits}"
+            return voucher_number
+        except Exception as e:
+            from datetime import datetime
+            return f"ERR{datetime.now().strftime('%Y%m%d%H%M%S')}"
     
     def __repr__(self):
         return f"<CreditBalance(id={self.id}, client_code='{self.client_code}', client_name='{self.client_name}')>"
